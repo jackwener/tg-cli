@@ -1,6 +1,5 @@
 ---
 name: tg-cli
-description: CLI skill for Telegram — monitor group chats, search messages, AI analysis, send messages, and filter keywords from the terminal
 author: jackwener
 version: "1.0.0"
 tags:
@@ -13,7 +12,6 @@ tags:
 
 # tg-cli Skill
 
-A CLI tool for interacting with Telegram. Monitor group chats, search messages, send messages, filter by keywords, and generate AI summaries.
 
 ## Prerequisites
 
@@ -62,14 +60,11 @@ tg timeline --by hour                # Activity bar chart
 tg today                             # Today's messages by chat
 ```
 
-### Data & AI
 
 ```bash
 tg export CHAT -f json -o out.json   # Export messages
 tg export CHAT --hours 24            # Export last 24 hours
 tg purge CHAT -y                     # Delete stored messages
-tg analyze CHAT --hours 24           # AI analysis (Claude)
-tg summary                           # AI daily digest
 ```
 
 ## JSON Output
@@ -83,14 +78,12 @@ tg today --json | jq 'length'
 tg filter "招聘" --hours 48 --json
 ```
 
-## Common Patterns for AI Agents
 
 ```bash
 # Quick daily workflow
 tg sync-all                       # Sync everything
 tg today                             # See today's messages
 tg filter "Rust,Golang" --hours 24   # Filter job posts
-tg summary                           # AI daily digest
 
 # Search and export for analysis
 tg search "招聘" -n 100 --json > jobs.json

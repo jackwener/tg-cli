@@ -37,9 +37,7 @@ Repository = "https://github.com/jackwener/tg-cli"
 Issues = "https://github.com/jackwener/tg-cli/issues"
 
 [project.optional-dependencies]
-ai = ["anthropic>=0.40"]
 dev = ["pytest>=8.0", "pytest-asyncio>=0.24"]
-all = ["tg-cli[ai]"]
 
 [project.scripts]
 tg = "tg_cli.cli.main:cli"
