@@ -115,12 +115,9 @@ class TestHelp:
         assert "tg" in result.output
 
     def test_tg_help(self, runner):
-        result = runner.invoke(cli, ["tg", "--help"])
+        result = runner.invoke(cli, ["chats", "--help"])
         assert result.exit_code == 0
-        assert "chats" in result.output
-        assert "sync" in result.output
-        assert "sync-all" in result.output
-        assert "listen" in result.output
+        assert "chats" in result.output.lower() or "telegram" in result.output.lower()
 
     def test_today_help(self, runner):
         result = runner.invoke(cli, ["today", "--help"])

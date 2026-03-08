@@ -28,25 +28,25 @@ uv tool install tg-cli
 Uses your Telegram account (MTProto). Built-in API credentials — just login with phone number.
 
 ```bash
-tg tg chats              # First run: enter phone + verification code
-tg tg whoami             # Check current user
+tg chats              # First run: enter phone + verification code
+tg whoami             # Check current user
 ```
 
 ## Command Reference
 
-### Telegram Operations (`tg tg ...`)
+### Telegram Operations (`tg ...`)
 
 ```bash
-tg tg chats                          # List joined chats
-tg tg chats --type group             # Filter by type
-tg tg whoami                         # Show current user info
-tg tg whoami --json                  # JSON output
-tg tg history CHAT -n 1000           # Fetch historical messages
-tg tg sync CHAT                      # Incremental sync (only new)
-tg tg sync-all                       # Sync ALL chats (single connection)
-tg tg listen                         # Real-time listener
-tg tg info CHAT                      # Chat details
-tg tg send CHAT "Hello!"             # Send a message
+tg chats                          # List joined chats
+tg chats --type group             # Filter by type
+tg whoami                         # Show current user info
+tg whoami --json                  # JSON output
+tg history CHAT -n 1000           # Fetch historical messages
+tg sync CHAT                      # Incremental sync (only new)
+tg sync-all                       # Sync ALL chats (single connection)
+tg listen                         # Real-time listener
+tg info CHAT                      # Chat details
+tg send CHAT "Hello!"             # Send a message
 ```
 
 ### Search & Query
@@ -78,7 +78,7 @@ Major commands support `--json` for machine-readable output:
 
 ```bash
 tg search "Rust" --json | jq '.[0].content'
-tg tg whoami --json | jq '.username'
+tg whoami --json | jq '.username'
 tg today --json | jq 'length'
 tg filter "招聘" --hours 48 --json
 ```
@@ -87,7 +87,7 @@ tg filter "招聘" --hours 48 --json
 
 ```bash
 # Quick daily workflow
-tg tg sync-all                       # Sync everything
+tg sync-all                       # Sync everything
 tg today                             # See today's messages
 tg filter "Rust,Golang" --hours 24   # Filter job posts
 tg summary                           # AI daily digest
@@ -97,7 +97,7 @@ tg search "招聘" -n 100 --json > jobs.json
 tg filter "远程,remote,Web3" --hours 72 --json > filtered.json
 
 # Send messages
-tg tg send "GroupName" "Hello from CLI!"
+tg send "GroupName" "Hello from CLI!"
 ```
 
 ## Verbose Mode

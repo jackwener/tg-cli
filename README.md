@@ -13,13 +13,13 @@ pip install tg-cli
 uv tool install tg-cli
 
 # Login (first run) — enter phone + verification code
-tg tg chats
+tg chats
 
 # Check who you are
-tg tg whoami
+tg whoami
 
 # Sync all groups at once
-tg tg sync-all
+tg sync-all
 
 # See today's messages
 tg today
@@ -31,12 +31,12 @@ tg search "Rust"
 tg filter "Rust,Golang,Java" --hours 48
 
 # Send a message
-tg tg send "GroupName" "Hello!"
+tg send "GroupName" "Hello!"
 ```
 
 ## Commands
 
-### Telegram (`tg tg ...`)
+### Telegram (`tg ...`)
 
 | Command | Description |
 |---------|-------------|
@@ -80,7 +80,7 @@ tg tg send "GroupName" "Hello!"
 
 ```bash
 pip install tg-cli  # or: uv tool install tg-cli
-tg tg chats         # login with phone number
+tg chats         # login with phone number
 ```
 
 That's it. Built-in API credentials work for most users.

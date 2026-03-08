@@ -26,13 +26,7 @@ def cli(verbose: bool):
     _setup_logging(verbose)
 
 
-# Register sub-groups
-cli.add_command(tg_group, "tg")
-
-# Register top-level query commands
-for name, cmd in query_group.commands.items():
-    cli.add_command(cmd, name)
-
-# Register top-level data commands
-for name, cmd in data_group.commands.items():
-    cli.add_command(cmd, name)
+# Register ALL commands at top-level (flat structure, no `tg tg` nonsense)
+for group in (tg_group, query_group, data_group):
+    for name, cmd in group.commands.items():
+        cli.add_command(cmd, name)
