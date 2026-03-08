@@ -28,12 +28,12 @@ def search(keyword: str, chat: str | None, limit: int, as_json: bool):
         chat_id = db.resolve_chat_id(chat) if chat else None
         results = db.search(keyword, chat_id=chat_id, limit=limit)
 
-    if not results:
-        console.print("[yellow]No messages found.[/yellow]")
+    if as_json:
+        click.echo(json.dumps(results, ensure_ascii=False, indent=2, default=str))
         return
 
-    if as_json:
-        console.print(json.dumps(results, ensure_ascii=False, indent=2, default=str))
+    if not results:
+        console.print("[yellow]No messages found.[/yellow]")
         return
 
     for msg in results:
@@ -144,12 +144,12 @@ def today(chat: str | None, as_json: bool):
         chat_id = db.resolve_chat_id(chat) if chat else None
         msgs = db.get_today(chat_id=chat_id)
 
-    if not msgs:
-        console.print("[yellow]No messages today.[/yellow]")
+    if as_json:
+        click.echo(json.dumps(msgs, ensure_ascii=False, indent=2, default=str))
         return
 
-    if as_json:
-        console.print(json.dumps(msgs, ensure_ascii=False, indent=2, default=str))
+    if not msgs:
+        console.print("[yellow]No messages today.[/yellow]")
         return
 
     # Group by chat
@@ -206,7 +206,7 @@ def filter_msgs(keywords: str, chat: str | None, hours: int | None, as_json: boo
         return
 
     if as_json:
-        console.print(json.dumps(matched, ensure_ascii=False, indent=2, default=str))
+        click.echo(json.dumps(matched, ensure_ascii=False, indent=2, default=str))
         return
 
     # Group by chat

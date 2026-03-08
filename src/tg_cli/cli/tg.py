@@ -211,7 +211,7 @@ def tg_whoami(as_json: bool):
     }
 
     if as_json:
-        console.print(json.dumps(info, ensure_ascii=False, indent=2))
+        click.echo(json.dumps(info, ensure_ascii=False, indent=2))
         return
 
     name = " ".join(p for p in [me.first_name, me.last_name] if p)
