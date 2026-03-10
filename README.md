@@ -28,6 +28,7 @@ SQLite so humans and AI agents can query the same cache quickly with `--json` or
 - Keep a near-real-time cache with `tg listen --persist`
 - Prefer YAML for AI agents when a strict JSON parser is not required
 - Default to YAML automatically on non-TTY stdout; override with `OUTPUT=yaml|json|rich|auto`
+- Structured output contract: [SCHEMA.md](./SCHEMA.md)
 
 ## Installation
 

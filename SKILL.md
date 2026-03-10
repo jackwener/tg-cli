@@ -96,6 +96,7 @@ tg filter "招聘" --hours 48 --yaml
 
 When stdout is not a TTY, `tg-cli` defaults to YAML automatically.
 Use `OUTPUT=yaml|json|rich|auto` to override the default output mode.
+All machine-readable output uses the envelope documented in [SCHEMA.md](./SCHEMA.md).
 
 ## Refresh Model
 
