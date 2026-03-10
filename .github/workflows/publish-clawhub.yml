@@ -51,9 +51,79 @@ jobs:
           fi
 
           clawhub --no-input login --token "${CLAWHUB_TOKEN}" --no-browser
-          clawhub --no-input publish . \
-            --slug "${CLAWHUB_SLUG}" \
-            --name "${CLAWHUB_NAME}" \
-            --version "${VERSION}" \
-            --changelog "Release ${VERSION}" \
-            --tags latest
+
+          # Workaround: clawhub@0.7.0 publish sends an invalid acceptLicenseTerms payload.
+          # Use a Node.js script with the corrected payload instead.
+          VERSION="${VERSION}" node - <<'PUBLISH_SCRIPT'
+          const { resolve } = require("path");
+          const { readFileSync, readdirSync } = require("fs");
+          const folder = resolve(".");
+          const slug = process.env.CLAWHUB_SLUG;
+          const version = process.env.VERSION;
+
+          function walk(dir, base = "") {
+            let files = [];
+            for (const entry of readdirSync(dir, { withFileTypes: true })) {
+              const rel = base ? base + "/" + entry.name : entry.name;
+              if (entry.name.startsWith(".") || entry.name === "node_modules") continue;
+              if (entry.isDirectory()) {
+                files.push(...walk(dir + "/" + entry.name, rel));
+              } else {
+                files.push({ rel, abs: dir + "/" + entry.name });
+              }
+            }
+            return files;
+          }
+
+          const files = walk(folder).filter((f) => {
+            const ext = f.rel.split(".").pop().toLowerCase();
+            return ["md", "txt", "py", "toml", "yml", "yaml", "json", "cfg", "ini", "sh", "bat"].includes(ext);
+          });
+
+          const payload = JSON.stringify({
+            slug,
+            displayName: slug,
+            version,
+            changelog: "Release " + version,
+            tags: ["latest"],
+            acceptLicenseTerms: true,
+          });
+
+          const form = new FormData();
+          form.set("payload", payload);
+          for (const file of files) {
+            const bytes = readFileSync(file.abs);
+            const blob = new Blob([bytes], { type: "text/plain" });
+            form.append("files", blob, file.rel);
+          }
+
+          const os = require("os");
+          const configPath = resolve(os.homedir(), ".config", "clawhub", "config.json");
+          let token = "";
+          try {
+            const cfg = JSON.parse(readFileSync(configPath, "utf8"));
+            token = cfg.token || "";
+          } catch {}
+
+          if (!token) {
+            console.error("No token found");
+            process.exit(1);
+          }
+
+          const registry = "https://api.clawhub.io";
+          fetch(registry + "/api/v1/skills", {
+            method: "POST",
+            headers: { Authorization: "Bearer " + token },
+            body: form,
+          }).then(async (r) => {
+            const text = await r.text();
+            if (!r.ok) {
+              console.error("Publish failed:", r.status, text);
+              process.exit(1);
+            }
+            console.log("✔ Published", slug + "@" + version);
+          }).catch((e) => {
+            console.error(e);
+            process.exit(1);
+          });
+          PUBLISH_SCRIPT

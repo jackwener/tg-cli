@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.1 - 2026-03-10
+
+- Fixed GitHub publish workflow permissions so PyPI checkout can read repository contents
+- Fixed ClawHub publish workflow to use the Node.js payload workaround for `acceptLicenseTerms`
+
 ## 0.4.0 - 2026-03-10
 
 - Switched the project license to Apache-2.0
