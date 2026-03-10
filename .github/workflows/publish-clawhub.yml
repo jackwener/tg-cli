@@ -1,9 +1,6 @@
 name: Publish to ClawHub
 
 on:
-  push:
-    tags:
-      - "v*"
   workflow_dispatch:
 
 jobs:
