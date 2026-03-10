@@ -1,7 +1,7 @@
 # tg-cli
 
 [![CI](https://github.com/jackwener/tg-cli/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jackwener/tg-cli/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/kabi-tg-cli)](https://pypi.org/project/kabi-tg-cli/)
+[![PyPI](https://img.shields.io/pypi/v/kabi_tg_cli)](https://pypi.org/project/kabi-tg-cli/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 Telethon-powered Telegram CLI for local-first sync, search, export, and agent-friendly retrieval.
