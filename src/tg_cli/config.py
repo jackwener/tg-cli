@@ -8,6 +8,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from .exceptions import NotAuthenticatedError
+
 # Load .env from project root
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -54,7 +56,9 @@ _API_SETUP_HELP = (
 )
 
 
-class MissingTelegramCredentialsError(RuntimeError):
+
+
+class MissingTelegramCredentialsError(NotAuthenticatedError):
     """Raised when TG_API_ID or TG_API_HASH is not configured."""
 
 

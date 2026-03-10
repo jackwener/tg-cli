@@ -79,7 +79,8 @@ def tg_chats(chat_type: str | None, as_json: bool, as_yaml: bool):
 @tg_group.command("history")
 @click.argument("chat")
 @click.option("-n", "--limit", default=1000, help="Max messages to fetch")
-def tg_history(chat: str, limit: int):
+@structured_output_options
+def tg_history(chat: str, limit: int, as_json: bool, as_yaml: bool):
     """Fetch historical messages from CHAT (name, username, or numeric ID)."""
 
     async def _run():
@@ -101,13 +102,17 @@ def tg_history(chat: str, limit: int):
                 return count
 
     count = asyncio.run(_run())
-    console.print(f"\n[green]✓[/green] Stored {count} messages from {chat}")
+    payload = {"stored": count, "chat": chat}
+    if emit_structured(payload, as_json=as_json, as_yaml=as_yaml):
+        return
+    console.print(f"\n[green]\u2713[/green] Stored {count} messages from {chat}")
 
 
 @tg_group.command("sync")
 @click.argument("chat")
 @click.option("-n", "--limit", default=5000, help="Max messages per sync")
-def tg_sync(chat: str, limit: int):
+@structured_output_options
+def tg_sync(chat: str, limit: int, as_json: bool, as_yaml: bool):
     """Incremental sync — fetch only new messages from CHAT."""
 
     async def _run():
@@ -137,7 +142,10 @@ def tg_sync(chat: str, limit: int):
     count = asyncio.run(_run())
     if count is None:
         return
-    console.print(f"\n[green]✓[/green] Synced {count} new messages from {chat}")
+    payload = {"synced": count, "chat": chat}
+    if emit_structured(payload, as_json=as_json, as_yaml=as_yaml):
+        return
+    console.print(f"\n[green]\u2713[/green] Synced {count} new messages from {chat}")
 
 
 @tg_group.command("sync-all")
@@ -367,7 +375,8 @@ def tg_status(as_json: bool, as_yaml: bool):
 @tg_group.command("send")
 @click.argument("chat")
 @click.argument("message")
-def tg_send(chat: str, message: str):
+@structured_output_options
+def tg_send(chat: str, message: str, as_json: bool, as_yaml: bool):
     """Send a MESSAGE to CHAT (name, username, or numeric ID)."""
 
     async def _run():
@@ -376,4 +385,7 @@ def tg_send(chat: str, message: str):
             return msg
 
     msg = asyncio.run(_run())
-    console.print(f"[green]✓[/green] Message sent (id: {msg.id})")
+    payload = {"sent": True, "msg_id": msg.id, "chat": chat}
+    if emit_structured(payload, as_json=as_json, as_yaml=as_yaml):
+        return
+    console.print(f"[green]\u2713[/green] Message sent (id: {msg.id})")
