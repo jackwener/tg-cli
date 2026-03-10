@@ -36,7 +36,9 @@ class TestStats:
         monkeypatch.setattr(db_mod, "get_db_path", lambda: db_path)
         result = runner.invoke(cli, ["stats", "--yaml"])
         assert result.exit_code == 0
-        data = yaml.safe_load(result.output)
+        payload = yaml.safe_load(result.output)
+        assert payload["ok"] is True
+        data = payload["data"]
         assert data["total"] == 10
         assert data["chats"][0]["chat_name"] == "TestGroup"
 
@@ -48,7 +50,7 @@ class TestStats:
         monkeypatch.setenv("OUTPUT", "auto")
         result = runner.invoke(cli, ["stats"])
         assert result.exit_code == 0
-        data = yaml.safe_load(result.output)
+        data = yaml.safe_load(result.output)["data"]
         assert data["total"] == 10
 
 
@@ -119,7 +121,9 @@ class TestSearch:
         monkeypatch.setattr(db_mod, "get_db_path", lambda: db_path)
         result = runner.invoke(cli, ["search", "Web3", "--yaml"])
         assert result.exit_code == 0
-        data = yaml.safe_load(result.output)
+        payload = yaml.safe_load(result.output)
+        assert payload["ok"] is True
+        data = payload["data"]
         assert isinstance(data, list)
         assert data[0]["content"]
 
@@ -240,7 +244,7 @@ class TestRefreshAndSyncFirst:
         monkeypatch.setattr(tg_mod, "sync_all_dialogs", fake_sync_all_dialogs)
         result = runner.invoke(cli, ["refresh", "--yaml"])
         assert result.exit_code == 0
-        data = yaml.safe_load(result.output)
+        data = yaml.safe_load(result.output)["data"]
         assert data["new_messages"] == 2
         assert data["updated_chats"] == ["ChatA"]
 
@@ -380,7 +384,7 @@ class TestStatus:
         monkeypatch.setattr(query_mod, "sync_all_dialogs", fake_sync_all_dialogs)
         result = runner.invoke(cli, ["stats", "--sync-first", "--yaml"])
         assert result.exit_code == 0
-        data = yaml.safe_load(result.output)
+        data = yaml.safe_load(result.output)["data"]
         assert data["total"] == 1
         assert data["chats"][0]["chat_name"] == "FreshGroup"
 
