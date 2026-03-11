@@ -7,7 +7,6 @@ from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
-
 from telethon import TelegramClient, events
 from telethon.tl.types import Channel, Chat, User
 
