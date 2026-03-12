@@ -191,7 +191,7 @@ async def fetch_history(
             if msg.text is None and msg.message is None:
                 continue
 
-        # Extract sender name from Telethon's cached _sender (zero API calls)
+            # Extract sender name from Telethon's cached _sender (zero API calls)
             sender_name = None
             if msg.sender_id:
                 if msg.sender_id in sender_cache:
@@ -241,7 +241,7 @@ async def fetch_history(
             f"[yellow]⚠ Telegram rate limit hit, waiting {e.seconds}s...[/yellow]"
         )
         await asyncio.sleep(e.seconds + random.uniform(1, 3))
-        return inserted_count if "inserted_count" in dir() else 0
+        return 0
     finally:
         if owns_db:
             db.close()
