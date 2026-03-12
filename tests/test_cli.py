@@ -248,7 +248,7 @@ class TestRefreshAndSyncFirst:
     def test_refresh_yaml(self, runner, monkeypatch):
         import tg_cli.cli.tg as tg_mod
 
-        async def fake_sync_all_dialogs(*, limit, on_chat_done=None, delay=2.0, max_chats=None):
+        async def fake_sync_all_dialogs(*, limit, on_chat_done=None, delay=1.0, max_chats=None):
             assert limit == 5000
             return {"ChatA": 2, "ChatB": 0}
 

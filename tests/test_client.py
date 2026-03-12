@@ -37,9 +37,11 @@ class FakeMessage:
     text: str
     date: datetime
     message: str | None = None
+    _sender: object = None
 
-    async def get_sender(self):
-        return FakeSender(id=self.sender_id)
+    def __post_init__(self):
+        if self._sender is None:
+            self._sender = FakeSender(id=self.sender_id)
 
 
 class FakeClient:

@@ -19,7 +19,7 @@ async def sync_all_dialogs(
     *,
     limit: int,
     on_chat_done: Callable[[str, int, int], None] | None = None,
-    delay: float = 2.0,
+    delay: float = 1.0,
     max_chats: int | None = None,
 ) -> dict[str, int]:
     """Sync all dialogs available to the current Telegram account."""

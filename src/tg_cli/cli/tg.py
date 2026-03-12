@@ -152,7 +152,7 @@ def tg_sync(chat: str, limit: int, as_json: bool, as_yaml: bool):
 @click.option("-n", "--limit", default=5000, help="Max messages per chat")
 @click.option(
     "--delay",
-    default=2.0,
+    default=1.0,
     show_default=True,
     help="Seconds between chat syncs (anti-ban). Set 0 to disable.",
 )
@@ -195,7 +195,7 @@ def tg_sync_all(limit: int, delay: float, max_chats: int | None, as_json: bool, 
 @click.option("-n", "--limit", default=5000, help="Max messages per chat")
 @click.option(
     "--delay",
-    default=2.0,
+    default=1.0,
     show_default=True,
     help="Seconds between chat syncs (anti-ban). Set 0 to disable.",
 )

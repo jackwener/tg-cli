@@ -155,7 +155,7 @@ async def fetch_history(
     db: MessageDB | None = None,
     on_progress: Callable[[int], None] | None = None,
     min_id: int = 0,
-    batch_delay: float = 0.5,
+    batch_delay: float = 0,
 ) -> int:
     """Fetch historical messages from a chat and store them in the database.
 
@@ -191,17 +191,16 @@ async def fetch_history(
             if msg.text is None and msg.message is None:
                 continue
 
-            # Resolve sender name lazily from message metadata
+        # Extract sender name from Telethon's cached _sender (zero API calls)
             sender_name = None
             if msg.sender_id:
                 if msg.sender_id in sender_cache:
                     sender_name = sender_cache[msg.sender_id]
                 else:
-                    try:
-                        sender = await msg.get_sender()
-                        sender_name = _get_sender_name(sender)
-                    except Exception:
-                        sender_name = None
+                    # Telethon caches sender in msg._sender from the response
+                    cached = getattr(msg, "_sender", None) or getattr(msg, "sender", None)
+                    if cached:
+                        sender_name = _get_sender_name(cached)
                     if sender_name:
                         sender_cache[msg.sender_id] = sender_name
 
@@ -253,7 +252,7 @@ async def sync_all(
     db: MessageDB,
     limit_per_chat: int = 5000,
     on_chat_done: Callable[[str, int, int], None] | None = None,
-    delay: float = 2.0,
+    delay: float = 1.0,
     max_chats: int | None = None,
 ) -> dict[str, int]:
     """Sync all chats in the database using a single connection.
