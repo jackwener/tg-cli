@@ -403,17 +403,20 @@ def tg_status(as_json: bool, as_yaml: bool):
 @tg_group.command("send")
 @click.argument("chat")
 @click.argument("message")
+@click.option("-r", "--reply-to", type=int, default=None, help="Message ID to reply to")
 @structured_output_options
-def tg_send(chat: str, message: str, as_json: bool, as_yaml: bool):
+def tg_send(chat: str, message: str, reply_to: int | None, as_json: bool, as_yaml: bool):
     """Send a MESSAGE to CHAT (name, username, or numeric ID)."""
 
     async def _run():
         async with connect() as client:
-            msg = await client.send_message(_parse_chat(chat), message)
+            msg = await client.send_message(_parse_chat(chat), message, reply_to=reply_to)
             return msg
 
     msg = asyncio.run(_run())
     payload = {"sent": True, "msg_id": msg.id, "chat": chat}
+    if reply_to:
+        payload["reply_to"] = reply_to
     if emit_structured(payload, as_json=as_json, as_yaml=as_yaml):
         return
     console.print(f"[green]\u2713[/green] Message sent (id: {msg.id})")
