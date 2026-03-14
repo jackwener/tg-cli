@@ -7,6 +7,14 @@ from ..db import MessageDB
 from ._output import emit_error
 
 
+def _parse_chat(chat: str) -> str | int:
+    """Parse a chat argument: return int if numeric, else the original string."""
+    try:
+        return int(chat)
+    except ValueError:
+        return chat
+
+
 def resolve_chat_id_or_print(
     db: MessageDB,
     chat: str | None,

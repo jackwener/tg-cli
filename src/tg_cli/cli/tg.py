@@ -10,7 +10,7 @@ from rich.table import Table
 from ..client import connect, fetch_history, get_chat_info, list_chats, listen
 from ..console import console
 from ..db import MessageDB
-from ._chat import resolve_chat_id_or_print
+from ._chat import _parse_chat, resolve_chat_id_or_print
 from ._output import (
     default_structured_format,
     dump_structured,
@@ -22,12 +22,6 @@ from ._output import (
 from ._sync import sync_all_dialogs, sync_chat_dialog
 
 
-def _parse_chat(chat: str) -> str | int:
-    """Parse a chat argument: return int if numeric, else the original string."""
-    try:
-        return int(chat)
-    except ValueError:
-        return chat
 
 
 def _telegram_user_payload(me) -> dict[str, str | int]:

@@ -526,3 +526,228 @@ class TestHelp:
         result = runner.invoke(cli, ["today", "--help"])
         assert result.exit_code == 0
         assert "today" in result.output.lower() or "chat" in result.output.lower()
+
+
+class TestSend:
+    def test_send_basic(self, runner, monkeypatch):
+        import tg_cli.cli.tg as tg_mod
+
+        class FakeMsg:
+            id = 42
+
+        class FakeClient:
+            async def send_message(self, chat, message, reply_to=None):
+                assert chat == "TestChat"
+                assert message == "Hello!"
+                assert reply_to is None
+                return FakeMsg()
+
+        @asynccontextmanager
+        async def fake_connect():
+            yield FakeClient()
+
+        monkeypatch.setattr(tg_mod, "connect", fake_connect)
+        result = runner.invoke(cli, ["send", "TestChat", "Hello!"])
+        assert result.exit_code == 0
+        assert "Message sent" in result.output
+        assert "42" in result.output
+
+    def test_send_with_reply(self, runner, monkeypatch):
+        import tg_cli.cli.tg as tg_mod
+
+        class FakeMsg:
+            id = 99
+
+        class FakeClient:
+            async def send_message(self, chat, message, reply_to=None):
+                assert reply_to == 12345
+                return FakeMsg()
+
+        @asynccontextmanager
+        async def fake_connect():
+            yield FakeClient()
+
+        monkeypatch.setattr(tg_mod, "connect", fake_connect)
+        result = runner.invoke(cli, ["send", "TestChat", "Reply!", "--reply", "12345"])
+        assert result.exit_code == 0
+
+    def test_send_yaml(self, runner, monkeypatch):
+        import tg_cli.cli.tg as tg_mod
+
+        class FakeMsg:
+            id = 77
+
+        class FakeClient:
+            async def send_message(self, chat, message, reply_to=None):
+                return FakeMsg()
+
+        @asynccontextmanager
+        async def fake_connect():
+            yield FakeClient()
+
+        monkeypatch.setattr(tg_mod, "connect", fake_connect)
+        result = runner.invoke(cli, ["send", "TestChat", "Hello!", "--yaml"])
+        assert result.exit_code == 0
+        data = yaml.safe_load(result.output)
+        assert data["ok"] is True
+        assert data["data"]["sent"] is True
+        assert data["data"]["msg_id"] == 77
+
+    def test_send_yaml_with_reply(self, runner, monkeypatch):
+        import tg_cli.cli.tg as tg_mod
+
+        class FakeMsg:
+            id = 88
+
+        class FakeClient:
+            async def send_message(self, chat, message, reply_to=None):
+                return FakeMsg()
+
+        @asynccontextmanager
+        async def fake_connect():
+            yield FakeClient()
+
+        monkeypatch.setattr(tg_mod, "connect", fake_connect)
+        result = runner.invoke(cli, ["send", "TestChat", "Hi!", "-r", "999", "--yaml"])
+        assert result.exit_code == 0
+        data = yaml.safe_load(result.output)
+        assert data["data"]["reply_to"] == 999
+
+    def test_send_numeric_chat(self, runner, monkeypatch):
+        import tg_cli.cli.tg as tg_mod
+
+        class FakeMsg:
+            id = 55
+
+        class FakeClient:
+            async def send_message(self, chat, message, reply_to=None):
+                assert chat == 12345  # Should be parsed as int
+                return FakeMsg()
+
+        @asynccontextmanager
+        async def fake_connect():
+            yield FakeClient()
+
+        monkeypatch.setattr(tg_mod, "connect", fake_connect)
+        result = runner.invoke(cli, ["send", "12345", "Hello!"])
+        assert result.exit_code == 0
+
+
+class TestChats:
+    def test_chats_rich(self, runner, monkeypatch):
+        from telethon.tl.types import User
+
+        import tg_cli.cli.tg as tg_mod
+
+        async def fake_list_chats(client, chat_type=None):
+            return [
+                {"id": 100, "name": "Alice", "type": "user", "unread": 3},
+                {"id": 200, "name": "Dev Group", "type": "group", "unread": 0},
+            ]
+
+        @asynccontextmanager
+        async def fake_connect():
+            yield object()
+
+        monkeypatch.setattr(tg_mod, "connect", fake_connect)
+        monkeypatch.setattr(tg_mod, "list_chats", fake_list_chats)
+        result = runner.invoke(cli, ["chats"])
+        assert result.exit_code == 0
+        assert "Alice" in result.output
+        assert "Dev Group" in result.output
+        assert "Total: 2 chats" in result.output
+
+    def test_chats_yaml(self, runner, monkeypatch):
+        import tg_cli.cli.tg as tg_mod
+
+        async def fake_list_chats(client, chat_type=None):
+            return [{"id": 100, "name": "Alice", "type": "user", "unread": 0}]
+
+        @asynccontextmanager
+        async def fake_connect():
+            yield object()
+
+        monkeypatch.setattr(tg_mod, "connect", fake_connect)
+        monkeypatch.setattr(tg_mod, "list_chats", fake_list_chats)
+        result = runner.invoke(cli, ["chats", "--yaml"])
+        assert result.exit_code == 0
+        data = yaml.safe_load(result.output)
+        assert data["ok"] is True
+        assert data["data"][0]["name"] == "Alice"
+
+    def test_chats_with_type_filter(self, runner, monkeypatch):
+        import tg_cli.cli.tg as tg_mod
+
+        async def fake_list_chats(client, chat_type=None):
+            assert chat_type == "channel"
+            return [{"id": 300, "name": "News", "type": "channel", "unread": 5}]
+
+        @asynccontextmanager
+        async def fake_connect():
+            yield object()
+
+        monkeypatch.setattr(tg_mod, "connect", fake_connect)
+        monkeypatch.setattr(tg_mod, "list_chats", fake_list_chats)
+        result = runner.invoke(cli, ["chats", "--type", "channel"])
+        assert result.exit_code == 0
+        assert "News" in result.output
+
+
+class TestHistory:
+    def test_history_rich(self, runner, monkeypatch, tmp_path):
+        import tg_cli.cli.tg as tg_mod
+        import tg_cli.db as db_mod
+
+        db_path = tmp_path / "test.db"
+        monkeypatch.setenv("DB_PATH", str(db_path))
+        monkeypatch.setattr(db_mod, "get_db_path", lambda: db_path)
+
+        async def fake_fetch_history(client, chat, limit=1000, db=None, on_progress=None):
+            return 42
+
+        @asynccontextmanager
+        async def fake_connect():
+            yield object()
+
+        monkeypatch.setattr(tg_mod, "connect", fake_connect)
+        monkeypatch.setattr(tg_mod, "fetch_history", fake_fetch_history)
+        result = runner.invoke(cli, ["history", "TestChat"])
+        assert result.exit_code == 0
+        assert "42" in result.output
+
+
+class TestInfo:
+    def test_info_yaml(self, runner, monkeypatch):
+        import tg_cli.cli.tg as tg_mod
+
+        async def fake_get_chat_info(client, chat):
+            return {"Title": "Dev Group", "ID": "100", "Type": "Group"}
+
+        @asynccontextmanager
+        async def fake_connect():
+            yield object()
+
+        monkeypatch.setattr(tg_mod, "connect", fake_connect)
+        monkeypatch.setattr(tg_mod, "get_chat_info", fake_get_chat_info)
+        result = runner.invoke(cli, ["info", "TestChat", "--yaml"])
+        assert result.exit_code == 0
+        data = yaml.safe_load(result.output)
+        assert data["ok"] is True
+        assert data["data"]["Title"] == "Dev Group"
+
+    def test_info_not_found(self, runner, monkeypatch):
+        import tg_cli.cli.tg as tg_mod
+
+        async def fake_get_chat_info(client, chat):
+            return None
+
+        @asynccontextmanager
+        async def fake_connect():
+            yield object()
+
+        monkeypatch.setattr(tg_mod, "connect", fake_connect)
+        monkeypatch.setattr(tg_mod, "get_chat_info", fake_get_chat_info)
+        result = runner.invoke(cli, ["info", "Missing"])
+        assert result.exit_code == 0
+        assert "Could not find chat" in result.output
+

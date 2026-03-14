@@ -1,14 +1,10 @@
 """Shared test fixtures."""
 
 import os
-import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
-
-# Ensure tests can import the package without an editable install.
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 # Set env vars before importing
 os.environ.setdefault("TG_API_ID", "0")

@@ -6,13 +6,7 @@ from collections.abc import Callable
 
 from ..client import connect, fetch_history, sync_all
 from ..db import MessageDB
-
-
-def _parse_chat(chat: str) -> str | int:
-    try:
-        return int(chat)
-    except ValueError:
-        return chat
+from ._chat import _parse_chat
 
 
 async def sync_all_dialogs(

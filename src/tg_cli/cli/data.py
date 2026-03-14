@@ -8,10 +8,9 @@ from ._chat import resolve_chat_id_or_print
 from ._output import default_structured_format, dump_structured, error_payload
 
 
-@click.group("data", invoke_without_command=True)
+@click.group("data")
 def data_group():
     """Data management commands (registered at top-level)."""
-    pass
 
 
 @data_group.command("export")

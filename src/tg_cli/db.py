@@ -213,13 +213,13 @@ class MessageDB:
         """Search messages by keyword."""
         query = "SELECT * FROM messages WHERE content LIKE ?"
         params: list[Any] = [f"%{keyword}%"]
-        if chat_id:
+        if chat_id is not None:
             query += " AND chat_id = ?"
             params.append(chat_id)
-        if sender:
+        if sender is not None:
             query += " AND sender_name LIKE ?"
             params.append(f"%{sender}%")
-        if hours:
+        if hours is not None:
             cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
             query += " AND timestamp >= ?"
             params.append(cutoff)
@@ -240,17 +240,18 @@ class MessageDB:
         regex = re.compile(pattern, re.IGNORECASE)
         query = "SELECT * FROM messages WHERE content IS NOT NULL"
         params: list[Any] = []
-        if chat_id:
+        if chat_id is not None:
             query += " AND chat_id = ?"
             params.append(chat_id)
-        if sender:
+        if sender is not None:
             query += " AND sender_name LIKE ?"
             params.append(f"%{sender}%")
-        if hours:
+        if hours is not None:
             cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
             query += " AND timestamp >= ?"
             params.append(cutoff)
-        query += " ORDER BY timestamp DESC"
+        query += " ORDER BY timestamp DESC LIMIT ?"
+        params.append(limit * 10)
 
         rows = self.conn.execute(query, params).fetchall()
         results: list[dict] = []
@@ -278,10 +279,10 @@ class MessageDB:
         else:
             base_query = "SELECT * FROM messages WHERE 1=1"
             params = []
-        if chat_id:
+        if chat_id is not None:
             base_query += " AND chat_id = ?"
             params.append(chat_id)
-        if sender:
+        if sender is not None:
             base_query += " AND sender_name LIKE ?"
             params.append(f"%{sender}%")
         query = (
@@ -320,7 +321,7 @@ class MessageDB:
 
         query = "SELECT * FROM messages WHERE timestamp >= ?"
         params: list[Any] = [cutoff_utc]
-        if chat_id:
+        if chat_id is not None:
             query += " AND chat_id = ?"
             params.append(chat_id)
         query += " ORDER BY chat_name, timestamp ASC LIMIT ?"
@@ -347,7 +348,7 @@ class MessageDB:
         return row[0] if row and row[0] is not None else None
 
     def count(self, chat_id: int | None = None) -> int:
-        if chat_id:
+        if chat_id is not None:
             row = self.conn.execute(
                 "SELECT COUNT(*) FROM messages WHERE chat_id = ?", (chat_id,)
             ).fetchone()
@@ -357,7 +358,7 @@ class MessageDB:
 
     def get_latest_timestamp(self, chat_id: int | None = None) -> str | None:
         """Return the latest stored message timestamp for a chat or the whole DB."""
-        if chat_id:
+        if chat_id is not None:
             row = self.conn.execute(
                 "SELECT MAX(timestamp) FROM messages WHERE chat_id = ?", (chat_id,)
             ).fetchone()
@@ -382,10 +383,10 @@ class MessageDB:
         """Get most active senders ranked by message count."""
         conditions = ["(sender_id IS NOT NULL OR sender_name IS NOT NULL)"]
         params: list[Any] = []
-        if chat_id:
+        if chat_id is not None:
             conditions.append("chat_id = ?")
             params.append(chat_id)
-        if hours:
+        if hours is not None:
             cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
             conditions.append("timestamp >= ?")
             params.append(cutoff)
@@ -416,10 +417,10 @@ class MessageDB:
 
         conditions = ["1=1"]
         params: list[Any] = []
-        if chat_id:
+        if chat_id is not None:
             conditions.append("chat_id = ?")
             params.append(chat_id)
-        if hours:
+        if hours is not None:
             cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
             conditions.append("timestamp >= ?")
             params.append(cutoff)

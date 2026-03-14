@@ -13,10 +13,9 @@ from ._output import emit_error, emit_structured, structured_output_options
 from ._sync import sync_all_dialogs, sync_chat_dialog
 
 
-@click.group("query", invoke_without_command=True)
+@click.group("query")
 def query_group():
     """Query and analysis commands (registered at top-level)."""
-    pass
 
 
 def _maybe_sync_first(chat: str | None, sync_first: bool, sync_limit: int) -> None:
