@@ -396,13 +396,16 @@ def tg_status(as_json: bool, as_yaml: bool):
 @click.argument("chat")
 @click.argument("message")
 @click.option("-r", "--reply", type=int, default=None, help="Message ID to reply to")
+@click.option("--no-preview", is_flag=True, help="Disable link preview")
 @structured_output_options
-def tg_send(chat: str, message: str, reply: int | None, as_json: bool, as_yaml: bool):
+def tg_send(chat: str, message: str, reply: int | None, no_preview: bool, as_json: bool, as_yaml: bool):
     """Send a MESSAGE to CHAT (name, username, or numeric ID)."""
 
     async def _run():
         async with connect() as client:
-            msg = await client.send_message(_parse_chat(chat), message, reply_to=reply)
+            msg = await client.send_message(
+                _parse_chat(chat), message, reply_to=reply, link_preview=not no_preview,
+            )
             return msg
 
     msg = asyncio.run(_run())
@@ -418,12 +421,17 @@ def tg_send(chat: str, message: str, reply: int | None, as_json: bool, as_yaml: 
 @click.argument("chat")
 @click.argument("msg_id", type=int)
 @click.argument("new_text")
+@click.option("--no-preview", is_flag=True, help="Disable link preview")
 @structured_output_options
-def tg_edit(chat: str, msg_id: int, new_text: str, as_json: bool, as_yaml: bool):
+def tg_edit(chat: str, msg_id: int, new_text: str, no_preview: bool, as_json: bool, as_yaml: bool):
     """Edit a previously sent message. CHAT MSG_ID NEW_TEXT."""
 
     async def _run():
         from telethon.tl.functions.messages import EditMessageRequest
+
+        kwargs = {}
+        if no_preview:
+            kwargs["no_webpage"] = True
 
         async with connect() as client:
             entity = await client.get_input_entity(_parse_chat(chat))
@@ -431,6 +439,7 @@ def tg_edit(chat: str, msg_id: int, new_text: str, as_json: bool, as_yaml: bool)
                 peer=entity,
                 id=msg_id,
                 message=new_text,
+                **kwargs,
             ))
 
     asyncio.run(_run())
