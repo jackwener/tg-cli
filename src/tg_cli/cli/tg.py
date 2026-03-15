@@ -1,4 +1,4 @@
-"""Telegram subcommands — chats, history, sync, refresh, listen, info, whoami, status, send, edit, delete."""
+"""Telegram subcommands — send, edit, delete, and more."""
 
 import asyncio
 import time
@@ -398,7 +398,10 @@ def tg_status(as_json: bool, as_yaml: bool):
 @click.option("-r", "--reply", type=int, default=None, help="Message ID to reply to")
 @click.option("--no-preview", is_flag=True, help="Disable link preview")
 @structured_output_options
-def tg_send(chat: str, message: str, reply: int | None, no_preview: bool, as_json: bool, as_yaml: bool):
+def tg_send(
+    chat: str, message: str, reply: int | None,
+    no_preview: bool, as_json: bool, as_yaml: bool,
+):
     """Send a MESSAGE to CHAT (name, username, or numeric ID)."""
 
     async def _run():
