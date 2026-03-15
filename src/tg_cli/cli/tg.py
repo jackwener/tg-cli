@@ -1,4 +1,4 @@
-"""Telegram subcommands — chats, history, sync, refresh, listen, info, whoami, status, send."""
+"""Telegram subcommands — chats, history, sync, refresh, listen, info, whoami, status, send, edit, delete."""
 
 import asyncio
 import time
@@ -412,3 +412,48 @@ def tg_send(chat: str, message: str, reply: int | None, as_json: bool, as_yaml: 
     if emit_structured(payload, as_json=as_json, as_yaml=as_yaml):
         return
     console.print(f"[green]\u2713[/green] Message sent (id: {msg.id})")
+
+
+@tg_group.command("edit")
+@click.argument("chat")
+@click.argument("msg_id", type=int)
+@click.argument("new_text")
+@structured_output_options
+def tg_edit(chat: str, msg_id: int, new_text: str, as_json: bool, as_yaml: bool):
+    """Edit a previously sent message. CHAT MSG_ID NEW_TEXT."""
+
+    async def _run():
+        from telethon.tl.functions.messages import EditMessageRequest
+
+        async with connect() as client:
+            entity = await client.get_input_entity(_parse_chat(chat))
+            await client(EditMessageRequest(
+                peer=entity,
+                id=msg_id,
+                message=new_text,
+            ))
+
+    asyncio.run(_run())
+    payload = {"edited": True, "msg_id": msg_id, "chat": chat}
+    if emit_structured(payload, as_json=as_json, as_yaml=as_yaml):
+        return
+    console.print(f"[green]\u2713[/green] Message {msg_id} edited")
+
+
+@tg_group.command("delete")
+@click.argument("chat")
+@click.argument("msg_ids", nargs=-1, type=int, required=True)
+@structured_output_options
+def tg_delete(chat: str, msg_ids: tuple[int, ...], as_json: bool, as_yaml: bool):
+    """Delete one or more messages. CHAT MSG_ID [MSG_ID ...]."""
+
+    async def _run():
+        async with connect() as client:
+            entity = await client.get_entity(_parse_chat(chat))
+            await client.delete_messages(entity, list(msg_ids))
+
+    asyncio.run(_run())
+    payload = {"deleted": True, "msg_ids": list(msg_ids), "chat": chat}
+    if emit_structured(payload, as_json=as_json, as_yaml=as_yaml):
+        return
+    console.print(f"[green]\u2713[/green] Deleted {len(msg_ids)} message(s)")
