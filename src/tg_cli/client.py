@@ -207,6 +207,13 @@ async def fetch_history(
             if ts and ts.tzinfo is None:
                 ts = ts.replace(tzinfo=timezone.utc)
 
+            # Extract reply_to IDs (reply_to_top_id = topic ID in forum groups)
+            reply_to_msg_id = None
+            reply_to_top_id = None
+            if msg.reply_to:
+                reply_to_msg_id = getattr(msg.reply_to, "reply_to_msg_id", None)
+                reply_to_top_id = getattr(msg.reply_to, "reply_to_top_id", None)
+
             batch.append(
                 dict(
                     chat_id=chat_id,
@@ -216,6 +223,8 @@ async def fetch_history(
                     sender_name=sender_name,
                     content=content,
                     timestamp=ts or datetime.now(timezone.utc),
+                    reply_to_msg_id=reply_to_msg_id,
+                    reply_to_top_id=reply_to_top_id,
                 )
             )
 
@@ -348,6 +357,12 @@ async def listen(
             if ts and ts.tzinfo is None:
                 ts = ts.replace(tzinfo=timezone.utc)
 
+            reply_to_msg_id = None
+            reply_to_top_id = None
+            if msg.reply_to:
+                reply_to_msg_id = getattr(msg.reply_to, "reply_to_msg_id", None)
+                reply_to_top_id = getattr(msg.reply_to, "reply_to_top_id", None)
+
             db.insert_message(
                 chat_id=chat.id,
                 chat_name=chat_name,
@@ -356,6 +371,8 @@ async def listen(
                 sender_name=sender_name,
                 content=content,
                 timestamp=ts or datetime.now(timezone.utc),
+                reply_to_msg_id=reply_to_msg_id,
+                reply_to_top_id=reply_to_top_id,
             )
 
             time_str = ts.strftime("%H:%M:%S") if ts else "??:??:??"
