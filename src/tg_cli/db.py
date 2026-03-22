@@ -16,19 +16,26 @@ log = logging.getLogger(__name__)
 
 _CREATE_TABLE = """
 CREATE TABLE IF NOT EXISTS messages (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    platform      TEXT    NOT NULL DEFAULT 'telegram',
-    chat_id       INTEGER NOT NULL,
-    chat_name     TEXT,
-    msg_id        INTEGER NOT NULL,
-    sender_id     INTEGER,
-    sender_name   TEXT,
-    content       TEXT,
-    timestamp     TEXT    NOT NULL,
-    raw_json      TEXT,
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    platform        TEXT    NOT NULL DEFAULT 'telegram',
+    chat_id         INTEGER NOT NULL,
+    chat_name       TEXT,
+    msg_id          INTEGER NOT NULL,
+    sender_id       INTEGER,
+    sender_name     TEXT,
+    content         TEXT,
+    timestamp       TEXT    NOT NULL,
+    raw_json        TEXT,
+    reply_to_msg_id INTEGER,
+    reply_to_top_id INTEGER,
     UNIQUE(platform, chat_id, msg_id)
 );
 """
+
+_MIGRATIONS = [
+    "ALTER TABLE messages ADD COLUMN reply_to_msg_id INTEGER",
+    "ALTER TABLE messages ADD COLUMN reply_to_top_id INTEGER",
+]
 
 _CREATE_INDEX = """
 CREATE INDEX IF NOT EXISTS idx_messages_chat_ts ON messages(chat_id, timestamp);
@@ -64,6 +71,16 @@ class MessageDB:
         self.conn.row_factory = sqlite3.Row
         self.conn.execute("PRAGMA journal_mode=WAL")
         self.conn.executescript(_CREATE_TABLE + _CREATE_INDEX)
+        self._run_migrations()
+
+    def _run_migrations(self):
+        """Apply schema migrations that add columns to existing tables."""
+        for stmt in _MIGRATIONS:
+            try:
+                self.conn.execute(stmt)
+                self.conn.commit()
+            except sqlite3.OperationalError:
+                pass  # Column already exists
 
     def __enter__(self):
         return self
@@ -118,6 +135,8 @@ class MessageDB:
         content: str | None,
         timestamp: datetime,
         raw_json: dict[str, Any] | None = None,
+        reply_to_msg_id: int | None = None,
+        reply_to_top_id: int | None = None,
     ) -> bool:
         """Insert a message, returns True if inserted (not duplicate)."""
         try:
@@ -132,9 +151,11 @@ class MessageDB:
                        sender_name,
                        content,
                        timestamp,
-                       raw_json
+                       raw_json,
+                       reply_to_msg_id,
+                       reply_to_top_id
                    )
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     platform,
                     chat_id,
@@ -145,6 +166,8 @@ class MessageDB:
                     content,
                     timestamp.isoformat(),
                     json.dumps(raw_json, ensure_ascii=False) if raw_json else None,
+                    reply_to_msg_id,
+                    reply_to_top_id,
                 ),
             )
             self.conn.commit()
@@ -175,6 +198,8 @@ class MessageDB:
                     else m["timestamp"]
                 ),
                 json.dumps(m["raw_json"], ensure_ascii=False) if m.get("raw_json") else None,
+                m.get("reply_to_msg_id"),
+                m.get("reply_to_top_id"),
             )
             for m in messages
         ]
@@ -191,9 +216,11 @@ class MessageDB:
                        sender_name,
                        content,
                        timestamp,
-                       raw_json
+                       raw_json,
+                       reply_to_msg_id,
+                       reply_to_top_id
                    )
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 rows,
             )
             self.conn.commit()
